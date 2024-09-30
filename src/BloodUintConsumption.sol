@@ -4,16 +4,17 @@ pragma solidity ^0.8.18;
 contract bloodunitconsumption {
     address public bloodbankadministration;
     address public hospitaladministration;
-    uint startTime;
-    uint PatientID;
-    uint Amount;
-    uint TransfusionDate;
-    uint TransfusionTime;
-    uint requestDate;
-    uint ApprovalDate;
+    uint256 startTime;
+    uint256 PatientID;
+    uint256 Amount;
+    uint256 TransfusionDate;
+    uint256 TransfusionTime;
+    uint256 requestDate;
+    uint256 ApprovalDate;
     mapping(address => bool) transporter; // only authorized transporters are allowed
     mapping(address => bool) doctor; // only authorized doctors are allowed
     mapping(address => bool) nurse; // only authorized nurses are allowed
+
     enum OrderStatus {
         NotReady,
         ReadyforDelivery,
@@ -22,12 +23,15 @@ contract bloodunitconsumption {
         EndDelivery,
         OrderReceived
     }
+
     OrderStatus public Orderstate;
+
     enum BloodComponentType {
         redcellstype,
         plasmatype,
         plateletstype
     }
+
     BloodComponentType public BloodcomponentType;
 
     constructor() {
@@ -40,75 +44,41 @@ contract bloodunitconsumption {
 
     // Events
     event RedcellsRequest(
-        address indexed doctor,
-        uint BloodcomponentType,
-        uint Amount,
-        uint indexed requestDate
+        address indexed doctor, uint256 BloodcomponentType, uint256 Amount, uint256 indexed requestDate
     );
     event PlasmaRequest(
-        address indexed doctor,
-        uint BloodcomponentType,
-        uint Amount,
-        uint indexed requestDate
+        address indexed doctor, uint256 BloodcomponentType, uint256 Amount, uint256 indexed requestDate
     );
     event PlateletsRequest(
-        address indexed doctor,
-        uint BloodcomponentType,
-        uint Amount,
-        uint indexed requestDate
+        address indexed doctor, uint256 BloodcomponentType, uint256 Amount, uint256 indexed requestDate
     );
     event RedcellsOrderApproval(
-        address bloodbanckadministration,
-        uint BloodcomponentType,
-        uint Amount,
-        uint indexed ApprovalDate
+        address bloodbanckadministration, uint256 BloodcomponentType, uint256 Amount, uint256 indexed ApprovalDate
     );
     event PlasmaOrderApproval(
-        address bloodbanckadministration,
-        uint BloodcomponentType,
-        uint Amount,
-        uint indexed ApprovalDate
+        address bloodbanckadministration, uint256 BloodcomponentType, uint256 Amount, uint256 indexed ApprovalDate
     );
     event PlateletsOrderApproval(
-        address bloodbanckadministration,
-        uint BloodcomponentType,
-        uint Amount,
-        uint indexed ApprovalDate
+        address bloodbanckadministration, uint256 BloodcomponentType, uint256 Amount, uint256 indexed ApprovalDate
     );
     event DeliveryStart(address transporter);
     event DeliveryEnd(address transporter);
     event BloodComponentUnitsOrderReceived(address indexed doctor);
     event DoctorRedcellsPrescription(
-        address indexed doctor,
-        uint BloodcomponentType,
-        uint PatientID,
-        uint Amount
+        address indexed doctor, uint256 BloodcomponentType, uint256 PatientID, uint256 Amount
     );
     event DoctorplasmaPrescription(
-        address indexed doctor,
-        uint BloodcomponentType,
-        uint PatientID,
-        uint Amount
+        address indexed doctor, uint256 BloodcomponentType, uint256 PatientID, uint256 Amount
     );
     event DoctorplateletsPrescription(
-        address indexed doctor,
-        uint BloodcomponentType,
-        uint PatientID,
-        uint Amount
+        address indexed doctor, uint256 BloodcomponentType, uint256 PatientID, uint256 Amount
     );
-    event consumptionend(
-        address indexed nures,
-        uint PatientID,
-        uint Date,
-        uint Time
-    );
+    event consumptionend(address indexed nures, uint256 PatientID, uint256 Date, uint256 Time);
     event consumptionSCdeployer(address deployer);
 
     // Transporter Authorization Function
 
-    function assigningtransporter(
-        address user
-    ) public onlybloodbankadministration {
+    function assigningtransporter(address user) public onlybloodbankadministration {
         transporter[user] = true;
     }
 
@@ -125,50 +95,32 @@ contract bloodunitconsumption {
     //Defining Modifiers
 
     modifier onlybloodbankadministration() {
-        require(
-            bloodbankadministration == msg.sender,
-            "The sender is not eligible to run this function"
-        );
+        require(bloodbankadministration == msg.sender, "The sender is not eligible to run this function");
         _;
     }
 
     modifier onlyhospitaladministration() {
-        require(
-            hospitaladministration == msg.sender,
-            "The sender is not eligible to run this function"
-        );
+        require(hospitaladministration == msg.sender, "The sender is not eligible to run this function");
         _;
     }
 
     modifier onlytransporter() {
-        require(
-            transporter[msg.sender],
-            "The sender is not eligible to run this function"
-        );
+        require(transporter[msg.sender], "The sender is not eligible to run this function");
         _;
     }
 
     modifier onlydoctor() {
-        require(
-            doctor[msg.sender],
-            "The sender is not eligible to run this function"
-        );
+        require(doctor[msg.sender], "The sender is not eligible to run this function");
         _;
     }
+
     modifier onlynurse() {
-        require(
-            nurse[msg.sender],
-            "The sender is not eligible to run this function"
-        );
+        require(nurse[msg.sender], "The sender is not eligible to run this function");
         _;
     }
 
     // Blood Unit Consumption Tracing
-    function BloodunitRequested(
-        BloodComponentType _BloodcomponentType,
-        uint A,
-        uint ReqDate
-    ) public onlydoctor {
+    function BloodunitRequested(BloodComponentType _BloodcomponentType, uint256 A, uint256 ReqDate) public onlydoctor {
         Amount = A;
         requestDate = ReqDate;
         if (_BloodcomponentType == BloodComponentType.redcellstype) {
@@ -181,11 +133,10 @@ contract bloodunitconsumption {
         }
     }
 
-    function OrderApproval(
-        BloodComponentType _BloodcomponentType,
-        uint _A,
-        uint _AproDate
-    ) public onlybloodbankadministration {
+    function OrderApproval(BloodComponentType _BloodcomponentType, uint256 _A, uint256 _AproDate)
+        public
+        onlybloodbankadministration
+    {
         Amount = _A;
         ApprovalDate = _AproDate;
         if (_BloodcomponentType == BloodComponentType.redcellstype) {
@@ -200,36 +151,27 @@ contract bloodunitconsumption {
 
     function StartDelivery() public onlytransporter {
         require(
-            Orderstate == OrderStatus.ReadyforDelivery,
-            "Can't start delivery before approving the doctor's request"
+            Orderstate == OrderStatus.ReadyforDelivery, "Can't start delivery before approving the doctor's request"
         );
         Orderstate = OrderStatus.onTrack;
         emit DeliveryStart(msg.sender);
     }
 
     function EndDelivery() public onlytransporter {
-        require(
-            Orderstate == OrderStatus.onTrack,
-            "Can't end delivery before announcing the start of it"
-        );
+        require(Orderstate == OrderStatus.onTrack, "Can't end delivery before announcing the start of it");
         Orderstate = OrderStatus.EndDelivery;
         emit DeliveryEnd(msg.sender);
     }
 
     function OrderReceived() public onlydoctor {
         require(
-            Orderstate == OrderStatus.EndDelivery,
-            "Can't receive the order before announcing the end of the delivery"
+            Orderstate == OrderStatus.EndDelivery, "Can't receive the order before announcing the end of the delivery"
         );
         Orderstate = OrderStatus.OrderReceived;
         emit BloodComponentUnitsOrderReceived(msg.sender);
     }
 
-    function BloodUnitPrescription(
-        BloodComponentType _BloodcomponentType,
-        uint _ID,
-        uint _A
-    ) public onlydoctor {
+    function BloodUnitPrescription(BloodComponentType _BloodcomponentType, uint256 _ID, uint256 _A) public onlydoctor {
         PatientID = _ID;
         Amount = _A;
         if (_BloodcomponentType == BloodComponentType.redcellstype) {
@@ -242,11 +184,7 @@ contract bloodunitconsumption {
         }
     }
 
-    function BloodUnitTransfusion(
-        uint ID,
-        uint Date,
-        uint Time
-    ) public onlynurse {
+    function BloodUnitTransfusion(uint256 ID, uint256 Date, uint256 Time) public onlynurse {
         PatientID = ID;
         TransfusionDate = Date;
         TransfusionTime = Time;

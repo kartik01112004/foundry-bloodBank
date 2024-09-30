@@ -6,13 +6,14 @@ pragma solidity ^0.8.18;
 contract bloodunitproduction {
     address public phlebotomist;
     address public bloodbanktechnician;
-    uint donor_ID;
+    uint256 donor_ID;
 
-    uint startTime;
-    uint amount;
-    uint expiryDate;
+    uint256 startTime;
+    uint256 amount;
+    uint256 expiryDate;
 
     mapping(address => bool) transporter; // only authorized transporters are allowed
+
     enum wholebloodunitStatus {
         NotReady,
         ReadyforDelivery,
@@ -21,37 +22,37 @@ contract bloodunitproduction {
         EndDelivery,
         wholebloodunitReceived
     }
+
     wholebloodunitStatus public bloodunitstate;
+
     enum BloodComponentType {
         redcellstype,
         plasmatype,
         plateletstype
     }
+
     BloodComponentType public BloodcomponentType;
 
     // Events
     event BloodUnitProductionprocessStarted(address phlebotomist);
-    event wholebloodunitReadyForDelivery(address phlebotomist, uint donor_ID);
+    event wholebloodunitReadyForDelivery(address phlebotomist, uint256 donor_ID);
     event DeliveryStart(address transporter);
     event DeliveryEnd(address transporter);
     event wholebloodunitReceived(address bloodbanktechnician);
     event redcellunitproductionend(
         address indexed bloodbanktechnician,
-        uint BloodcomponentType,
-        uint redcellsamount,
-        uint redcellsexpiryDate
+        uint256 BloodcomponentType,
+        uint256 redcellsamount,
+        uint256 redcellsexpiryDate
     );
     event plasmaunitproductionend(
-        address indexed bloodbanktechnician,
-        uint BloodcomponentType,
-        uint plasmaamount,
-        uint plasmaexpiryDate
+        address indexed bloodbanktechnician, uint256 BloodcomponentType, uint256 plasmaamount, uint256 plasmaexpiryDate
     );
     event plateletsunitproductionend(
         address indexed bloodbanktechnician,
-        uint BloodcomponentType,
-        uint plateletsamount,
-        uint plateletsexpiryDate
+        uint256 BloodcomponentType,
+        uint256 plateletsamount,
+        uint256 plateletsexpiryDate
     );
 
     constructor() {
@@ -71,37 +72,25 @@ contract bloodunitproduction {
     //Defining Modifiers
 
     modifier onlyphlebotomist() {
-        require(
-            phlebotomist == msg.sender,
-            "The sender is not eligible to run this function"
-        );
+        require(phlebotomist == msg.sender, "The sender is not eligible to run this function");
         _;
     }
 
     modifier onlytransporter() {
-        require(
-            transporter[msg.sender],
-            "The sender is not eligible to run this function"
-        );
+        require(transporter[msg.sender], "The sender is not eligible to run this function");
         _;
     }
 
     modifier onlybloodbanktechnician() {
-        require(
-            bloodbanktechnician == msg.sender,
-            "The sender is not eligible to run this function"
-        );
+        require(bloodbanktechnician == msg.sender, "The sender is not eligible to run this function");
         _;
     }
 
     // Blood Unit Production Tracing
 
-    function Collectwholebloodunit(uint donorID) public onlyphlebotomist {
+    function Collectwholebloodunit(uint256 donorID) public onlyphlebotomist {
         donor_ID = donorID;
-        require(
-            bloodunitstate == wholebloodunitStatus.NotReady,
-            "Blood unit is already collected"
-        );
+        require(bloodunitstate == wholebloodunitStatus.NotReady, "Blood unit is already collected");
         bloodunitstate = wholebloodunitStatus.ReadyforDelivery;
 
         emit wholebloodunitReadyForDelivery(msg.sender, donor_ID);
@@ -117,10 +106,7 @@ contract bloodunitproduction {
     }
 
     function EndDelivery() public onlytransporter {
-        require(
-            bloodunitstate == wholebloodunitStatus.onTrack,
-            "Can't end delivery before announcing the start of it"
-        );
+        require(bloodunitstate == wholebloodunitStatus.onTrack, "Can't end delivery before announcing the start of it");
         bloodunitstate = wholebloodunitStatus.EndDelivery;
         emit DeliveryEnd(msg.sender);
     }
@@ -134,11 +120,11 @@ contract bloodunitproduction {
         emit wholebloodunitReceived(msg.sender);
     }
 
-    function Createbloodunit(
-        BloodComponentType _BloodcomponentType,
-        uint _A,
-        uint _Expd
-    ) public onlybloodbanktechnician returns (uint) {
+    function Createbloodunit(BloodComponentType _BloodcomponentType, uint256 _A, uint256 _Expd)
+        public
+        onlybloodbanktechnician
+        returns (uint256)
+    {
         amount = _A;
         expiryDate = _Expd;
 

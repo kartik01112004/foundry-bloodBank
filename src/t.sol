@@ -8,10 +8,10 @@ contract BloodUnitProduction {
     mapping(address => bool) public bloodbanktechnicians;
     mapping(address => bool) public transporters;
 
-    uint public donor_ID;
-    uint public startTime;
-    uint public amount;
-    uint public expiryDate;
+    uint256 public donor_ID;
+    uint256 public startTime;
+    uint256 public amount;
+    uint256 public expiryDate;
 
     // Status and Types
     enum WholeBloodUnitStatus {
@@ -22,6 +22,7 @@ contract BloodUnitProduction {
         EndDelivery,
         WholeBloodUnitReceived
     }
+
     WholeBloodUnitStatus public bloodunitstate;
 
     enum BloodComponentType {
@@ -29,31 +30,29 @@ contract BloodUnitProduction {
         PlasmaType,
         PlateletsType
     }
+
     BloodComponentType public bloodComponentType;
 
     // Events
     event BloodUnitProductionProcessStarted(address phlebotomist);
-    event WholeBloodUnitReadyForDelivery(address phlebotomist, uint donor_ID);
+    event WholeBloodUnitReadyForDelivery(address phlebotomist, uint256 donor_ID);
     event DeliveryStart(address transporter);
     event DeliveryEnd(address transporter);
     event WholeBloodUnitReceived(address bloodbanktechnician);
     event RedCellUnitProductionEnd(
         address indexed bloodbanktechnician,
-        uint bloodComponentType,
-        uint redCellsAmount,
-        uint redCellsExpiryDate
+        uint256 bloodComponentType,
+        uint256 redCellsAmount,
+        uint256 redCellsExpiryDate
     );
     event PlasmaUnitProductionEnd(
-        address indexed bloodbanktechnician,
-        uint bloodComponentType,
-        uint plasmaAmount,
-        uint plasmaExpiryDate
+        address indexed bloodbanktechnician, uint256 bloodComponentType, uint256 plasmaAmount, uint256 plasmaExpiryDate
     );
     event PlateletsUnitProductionEnd(
         address indexed bloodbanktechnician,
-        uint bloodComponentType,
-        uint plateletsAmount,
-        uint plateletsExpiryDate
+        uint256 bloodComponentType,
+        uint256 plateletsAmount,
+        uint256 plateletsExpiryDate
     );
 
     constructor() {
@@ -86,56 +85,42 @@ contract BloodUnitProduction {
     }
 
     modifier onlyBloodBankTechnician() {
-        require(
-            bloodbanktechnicians[msg.sender],
-            "Sender is not a bloodbank technician"
-        );
+        require(bloodbanktechnicians[msg.sender], "Sender is not a bloodbank technician");
         _;
     }
 
     // Blood Unit Production Functions
-    function collectWholeBloodUnit(uint _donorID) public onlyPhlebotomist {
+    function collectWholeBloodUnit(uint256 _donorID) public onlyPhlebotomist {
         donor_ID = _donorID;
-        require(
-            bloodunitstate == WholeBloodUnitStatus.NotReady,
-            "Blood unit is already collected"
-        );
+        require(bloodunitstate == WholeBloodUnitStatus.NotReady, "Blood unit is already collected");
         bloodunitstate = WholeBloodUnitStatus.ReadyforDelivery;
         emit WholeBloodUnitReadyForDelivery(msg.sender, donor_ID);
     }
 
     function startDelivery() public onlyTransporter {
         require(
-            bloodunitstate == WholeBloodUnitStatus.ReadyforDelivery,
-            "Delivery cannot start before blood unit is ready"
+            bloodunitstate == WholeBloodUnitStatus.ReadyforDelivery, "Delivery cannot start before blood unit is ready"
         );
         bloodunitstate = WholeBloodUnitStatus.onTrack;
         emit DeliveryStart(msg.sender);
     }
 
     function endDelivery() public onlyTransporter {
-        require(
-            bloodunitstate == WholeBloodUnitStatus.onTrack,
-            "Cannot end delivery before it starts"
-        );
+        require(bloodunitstate == WholeBloodUnitStatus.onTrack, "Cannot end delivery before it starts");
         bloodunitstate = WholeBloodUnitStatus.EndDelivery;
         emit DeliveryEnd(msg.sender);
     }
 
     function receiveCollectedBloodUnit() public onlyBloodBankTechnician {
-        require(
-            bloodunitstate == WholeBloodUnitStatus.EndDelivery,
-            "Cannot receive blood unit before delivery ends"
-        );
+        require(bloodunitstate == WholeBloodUnitStatus.EndDelivery, "Cannot receive blood unit before delivery ends");
         bloodunitstate = WholeBloodUnitStatus.WholeBloodUnitReceived;
         emit WholeBloodUnitReceived(msg.sender);
     }
 
-    function createBloodUnit(
-        BloodComponentType _componentType,
-        uint _amount,
-        uint _expiryDate
-    ) public onlyBloodBankTechnician {
+    function createBloodUnit(BloodComponentType _componentType, uint256 _amount, uint256 _expiryDate)
+        public
+        onlyBloodBankTechnician
+    {
         amount = _amount;
         expiryDate = _expiryDate;
 
@@ -158,12 +143,12 @@ contract BloodUnitConsumption {
     mapping(address => bool) public doctors;
     mapping(address => bool) public nurses;
 
-    uint public patientID;
-    uint public amount;
-    uint public transfusionDate;
-    uint public transfusionTime;
-    uint public requestDate;
-    uint public approvalDate;
+    uint256 public patientID;
+    uint256 public amount;
+    uint256 public transfusionDate;
+    uint256 public transfusionTime;
+    uint256 public requestDate;
+    uint256 public approvalDate;
 
     enum OrderStatus {
         NotReady,
@@ -173,6 +158,7 @@ contract BloodUnitConsumption {
         EndDelivery,
         OrderReceived
     }
+
     OrderStatus public orderState;
 
     enum BloodComponentType {
@@ -180,6 +166,7 @@ contract BloodUnitConsumption {
         PlasmaType,
         PlateletsType
     }
+
     BloodComponentType public bloodComponentType;
 
     constructor() {
@@ -188,32 +175,16 @@ contract BloodUnitConsumption {
 
     // Events
     event BloodUnitRequest(
-        address indexed doctor,
-        uint bloodComponentType,
-        uint amount,
-        uint indexed requestDate
+        address indexed doctor, uint256 bloodComponentType, uint256 amount, uint256 indexed requestDate
     );
     event OrderApproval(
-        address bloodbankAdmin,
-        uint bloodComponentType,
-        uint amount,
-        uint indexed approvalDate
+        address bloodbankAdmin, uint256 bloodComponentType, uint256 amount, uint256 indexed approvalDate
     );
     event DeliveryStart(address transporter);
     event DeliveryEnd(address transporter);
     event BloodUnitOrderReceived(address indexed doctor);
-    event BloodUnitPrescription(
-        address indexed doctor,
-        uint bloodComponentType,
-        uint patientID,
-        uint amount
-    );
-    event BloodUnitTransfusionComplete(
-        address indexed nurse,
-        uint patientID,
-        uint date,
-        uint time
-    );
+    event BloodUnitPrescription(address indexed doctor, uint256 bloodComponentType, uint256 patientID, uint256 amount);
+    event BloodUnitTransfusionComplete(address indexed nurse, uint256 patientID, uint256 date, uint256 time);
 
     // Role Assignment Functions
     function assignBloodBankAdmin(address _admin) public {
@@ -238,18 +209,12 @@ contract BloodUnitConsumption {
 
     // Modifiers for role-based access control
     modifier onlyBloodBankAdmin() {
-        require(
-            bloodbankadministrations[msg.sender],
-            "Sender is not a bloodbank admin"
-        );
+        require(bloodbankadministrations[msg.sender], "Sender is not a bloodbank admin");
         _;
     }
 
     modifier onlyHospitalAdmin() {
-        require(
-            hospitaladministrations[msg.sender],
-            "Sender is not a hospital admin"
-        );
+        require(hospitaladministrations[msg.sender], "Sender is not a hospital admin");
         _;
     }
 
@@ -269,86 +234,55 @@ contract BloodUnitConsumption {
     }
 
     // Blood Unit Consumption Functions
-    function requestBloodUnit(
-        BloodComponentType _componentType,
-        uint _amount,
-        uint _requestDate
-    ) public onlyDoctor {
+    function requestBloodUnit(BloodComponentType _componentType, uint256 _amount, uint256 _requestDate)
+        public
+        onlyDoctor
+    {
         amount = _amount;
         requestDate = _requestDate;
 
-        emit BloodUnitRequest(
-            msg.sender,
-            uint(_componentType),
-            amount,
-            requestDate
-        );
+        emit BloodUnitRequest(msg.sender, uint256(_componentType), amount, requestDate);
     }
 
-    function approveOrder(
-        BloodComponentType _componentType,
-        uint _amount,
-        uint _approvalDate
-    ) public onlyBloodBankAdmin {
+    function approveOrder(BloodComponentType _componentType, uint256 _amount, uint256 _approvalDate)
+        public
+        onlyBloodBankAdmin
+    {
         amount = _amount;
         approvalDate = _approvalDate;
 
-        emit OrderApproval(
-            msg.sender,
-            uint(_componentType),
-            amount,
-            approvalDate
-        );
+        emit OrderApproval(msg.sender, uint256(_componentType), amount, approvalDate);
     }
 
     function startDelivery() public onlyTransporter {
-        require(
-            orderState == OrderStatus.ReadyforDelivery,
-            "Order must be ready for delivery to start"
-        );
+        require(orderState == OrderStatus.ReadyforDelivery, "Order must be ready for delivery to start");
         orderState = OrderStatus.onTrack;
         emit DeliveryStart(msg.sender);
     }
 
     function endDelivery() public onlyTransporter {
-        require(
-            orderState == OrderStatus.onTrack,
-            "Delivery must be in progress to end it"
-        );
+        require(orderState == OrderStatus.onTrack, "Delivery must be in progress to end it");
         orderState = OrderStatus.EndDelivery;
         emit DeliveryEnd(msg.sender);
     }
 
     function orderReceived() public onlyDoctor {
-        require(
-            orderState == OrderStatus.EndDelivery,
-            "Delivery must end before receiving order"
-        );
+        require(orderState == OrderStatus.EndDelivery, "Delivery must end before receiving order");
         orderState = OrderStatus.OrderReceived;
         emit BloodUnitOrderReceived(msg.sender);
     }
 
-    function prescribeBloodUnit(
-        BloodComponentType _componentType,
-        uint _patientID,
-        uint _amount
-    ) public onlyDoctor {
+    function prescribeBloodUnit(BloodComponentType _componentType, uint256 _patientID, uint256 _amount)
+        public
+        onlyDoctor
+    {
         patientID = _patientID;
         amount = _amount;
 
-        emit BloodUnitPrescription(
-            msg.sender,
-            uint(_componentType),
-            patientID,
-            amount
-        );
+        emit BloodUnitPrescription(msg.sender, uint256(_componentType), patientID, amount);
     }
 
-    function completeBloodTransfusion(
-        uint _patientID,
-        uint _date,
-        uint _time
-    ) public onlyNurse {
+    function completeBloodTransfusion(uint256 _patientID, uint256 _date, uint256 _time) public onlyNurse {
         transfusionDate = _date;
         transfusionTime = _time;
 
