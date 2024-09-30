@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blood Unit Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h2 {
+        text-align: center;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .section input,
+      .section button {
+        padding: 10px;
+        margin-top: 10px;
+      }
+      button {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Blood Unit Management System</h2>
+
+      <!-- Blood Unit Production Section -->
+      <div class="section">
+        <h3>Blood Unit Production</h3>
+        <label for="donorId">Donor ID:</label><br />
+        <input type="text" id="donorId" placeholder="Enter Donor ID" /><br />
+        <button onclick="collectBloodUnit()">Collect Whole Blood Unit</button
+        ><br /><br />
+
+        <label for="bloodType"
+          >Blood Component Type (0: Red Cells, 1: Plasma, 2: Platelets):</label
+        ><br />
+        <input
+          type="text"
+          id="bloodType"
+          placeholder="Enter Blood Component Type"
+        /><br />
+        <label for="amount">Amount:</label><br />
+        <input type="text" id="amount" placeholder="Enter Amount" /><br />
+        <label for="expiryDate">Expiry Date (timestamp):</label><br />
+        <input
+          type="text"
+          id="expiryDate"
+          placeholder="Enter Expiry Date"
+        /><br />
+        <button onclick="createBloodUnit()">Create Blood Unit</button>
+      </div>
+
+      <!-- Blood Unit Consumption Section -->
+      <div class="section">
+        <h3>Blood Unit Consumption</h3>
+        <label for="patientId">Patient ID:</label><br />
+        <input
+          type="text"
+          id="patientId"
+          placeholder="Enter Patient ID"
+        /><br />
+        <label for="requestDate">Request Date (timestamp):</label><br />
+        <input
+          type="text"
+          id="requestDate"
+          placeholder="Enter Request Date"
+        /><br />
+        <button onclick="requestBloodUnit()">Request Blood Unit</button
+        ><br /><br />
+
+        <label for="transfusionDate">Transfusion Date (timestamp):</label><br />
+        <input
+          type="text"
+          id="transfusionDate"
+          placeholder="Enter Transfusion Date"
+        /><br />
+        <label for="transfusionTime">Transfusion Time (timestamp):</label><br />
+        <input
+          type="text"
+          id="transfusionTime"
+          placeholder="Enter Transfusion Time"
+        /><br />
+        <button onclick="completeBloodTransfusion()">
+          Complete Transfusion
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Connect to Ethereum and your contracts
+      let web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
+      let productionContractAddress = "0xYourProductionContractAddress"; // Update with actual address
+      let consumptionContractAddress = "0xYourConsumptionContractAddress"; // Update with actual address
+
+      let productionAbi = [
+        // Your BloodUnitProduction ABI
+      ];
+      let consumptionAbi = [
+        // Your BloodUnitConsumption ABI
+      ];
+
+      let productionContract = new web3.eth.Contract(
+        productionAbi,
+        productionContractAddress
+      );
+      let consumptionContract = new web3.eth.Contract(
+        consumptionAbi,
+        consumptionContractAddress
+      );
+
+      // Functions for Blood Unit Production
+      async function collectBloodUnit() {
+        const donorId = document.getElementById("donorId").value;
+        const accounts = await web3.eth.requestAccounts();
+        await productionContract.methods
+          .collectWholeBloodUnit(donorId)
+          .send({ from: accounts[0] });
+        alert("Whole Blood Unit collected successfully");
+      }
+
+      async function createBloodUnit() {
+        const componentType = document.getElementById("bloodType").value;
+        const amount = document.getElementById("amount").value;
+        const expiryDate = document.getElementById("expiryDate").value;
+        const accounts = await web3.eth.requestAccounts();
+        await productionContract.methods
+          .createBloodUnit(componentType, amount, expiryDate)
+          .send({ from: accounts[0] });
+        alert("Blood Unit created successfully");
+      }
+
+      // Functions for Blood Unit Consumption
+      async function requestBloodUnit() {
+        const patientId = document.getElementById("patientId").value;
+        const requestDate = document.getElementById("requestDate").value;
+        const accounts = await web3.eth.requestAccounts();
+        await consumptionContract.methods
+          .requestBloodUnit(0, 1, requestDate)
+          .send({ from: accounts[0] });
+        alert("Blood Unit requested successfully");
+      }
+
+      async function completeBloodTransfusion() {
+        const patientId = document.getElementById("patientId").value;
+        const transfusionDate =
+          document.getElementById("transfusionDate").value;
+        const transfusionTime =
+          document.getElementById("transfusionTime").value;
+        const accounts = await web3.eth.requestAccounts();
+        await consumptionContract.methods
+          .completeBloodTransfusion(patientId, transfusionDate, transfusionTime)
+          .send({ from: accounts[0] });
+        alert("Blood Transfusion completed successfully");
+      }
+    </script>
+  </body>
+</html>
